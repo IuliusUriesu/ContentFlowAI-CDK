@@ -2,10 +2,10 @@
   "name": "content_flow_ai-cdk",
   "version": "0.1.0",
   "bin": {
-    "content_flow_ai-cdk": "bin/content_flow_ai-cdk.js"
+    "content_flow_ai-cdk": "bin/app.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -r build && tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
