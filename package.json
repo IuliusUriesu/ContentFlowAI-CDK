@@ -5,7 +5,7 @@
     "content_flow_ai-cdk": "bin/app.js"
   },
   "scripts": {
-    "build": "rm -r build && tsc",
+    "build": "rm -r build && rm -r cdk.out && tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

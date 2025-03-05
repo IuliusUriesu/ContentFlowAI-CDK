@@ -1,4 +1,4 @@
-import { StageName } from "./stageName";
+import { StageName } from "./appConfig";
 
 interface AwsEnvironment {
     stageName: StageName,
