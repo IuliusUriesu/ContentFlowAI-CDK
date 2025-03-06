@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { AppStackProps } from '../utils/appStackProps';
-import { APP_NAME } from '../config/appConfig';
+import { APP_NAME } from '../config/constants';
 
 export class DynamoDbStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: AppStackProps) {
