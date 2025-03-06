@@ -5,10 +5,10 @@ import { AppStackProps } from '../utils/appStackProps';
 import { APP_NAME } from '../config/constants';
 
 export class DynamoDbStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: AppStackProps) {
+    constructor(scope: Construct, id: string, props: AppStackProps) {
         super(scope, id, props);
 
-        const tableName = `${props?.stageName}-${APP_NAME}`
+        const tableName = `${APP_NAME.toLowerCase()}_data`;
 
         new dynamodb.TableV2(this, tableName, {
             partitionKey: {
@@ -21,7 +21,6 @@ export class DynamoDbStack extends cdk.Stack {
             },
             tableName,
             billing: dynamodb.Billing.onDemand(),
-            tags: [ { key: "Project", value: APP_NAME } ]
         });
     }
 }
