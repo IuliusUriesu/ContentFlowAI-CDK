@@ -17,31 +17,25 @@ for (const props of stageProps) {
         Stage: stageName,
     };
 
+    const sharedStackProps = { env, stageName, tags };
+
     const dynamoDbStack = new DynamoDbStack(app, `${stageName}-DynamoDbStack`, {
-        env,
-        stageName,
-        tags,
+        ...sharedStackProps,
     });
 
     const dnsStack = new DnsStack(app, `${stageName}-DnsStack`, {
-        env,
-        stageName,
-        tags,
+        ...sharedStackProps,
         websiteDomain,
         apiDomain,
     });
 
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
-        env,
-        stageName,
-        tags,
+        ...sharedStackProps,
     });
 
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {
-        env,
-        stageName,
-        tags,
-        helloFunction: lambdaStack.helloFunction,
+        ...sharedStackProps,
+        defaultFunction: lambdaStack.defaultFunction,
         apiDomain,
         apiCertificate: dnsStack.apiCertificate,
     });

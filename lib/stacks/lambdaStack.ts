@@ -4,27 +4,19 @@ import { AppStackProps } from "../utils/appStackProps";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 
 export class LambdaStack extends cdk.Stack {
-    public helloFunction: lambda.IFunction;
+    public defaultFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: AppStackProps) {
         super(scope, id, props);
 
         const { stageName } = props;
 
-        const helloFunctionName = `${stageName}-HelloFunction`;
+        const codePath = "../ContentFlowAI-Lambda/dist";
 
-        this.helloFunction = new lambda.Function(this, helloFunctionName, {
+        this.defaultFunction = new lambda.Function(this, `${stageName}-DefaultFunction`, {
             runtime: lambda.Runtime.NODEJS_22_X,
-            handler: "index.handler",
-            code: lambda.Code.fromInline(`
-               exports.handler = async function(event) {
-                    return {
-                        statusCode: 200,
-                        body: JSON.stringify({ message: "Hello from the ContentFlowAI API!" })
-                    };
-               };
-            `),
-            functionName: helloFunctionName,
+            handler: "index.defaultHandler",
+            code: lambda.Code.fromAsset(codePath),
         });
     }
 }

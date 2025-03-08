@@ -9,7 +9,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import { StageName } from "../config/stageConfig";
 
 interface ApiStackProps extends AppStackProps {
-    helloFunction: lambda.IFunction;
+    defaultFunction: lambda.IFunction;
     apiDomain: string;
     apiCertificate: acm.ICertificate;
 }
@@ -18,7 +18,7 @@ export class ApiStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ApiStackProps) {
         super(scope, id, props);
 
-        const { stageName, helloFunction, apiDomain, apiCertificate } = props;
+        const { stageName, defaultFunction, apiDomain, apiCertificate } = props;
 
         const logGroupName = `${stageName}-ApiLogGroup`;
 
@@ -33,7 +33,7 @@ export class ApiStack extends cdk.Stack {
         const apiName = `${stageName}-${APP_NAME}-API`;
 
         const api = new apigateway.LambdaRestApi(this, apiName, {
-            handler: helloFunction, // This is used only if proxy is set to true
+            handler: defaultFunction, // This is used only if proxy is set to true
             proxy: false,
             domainName: {
                 domainName: apiDomain,
@@ -52,6 +52,6 @@ export class ApiStack extends cdk.Stack {
         });
 
         const v1 = api.root.addResource("v1");
-        v1.addMethod("GET", new apigateway.LambdaIntegration(helloFunction)); // GET /v1
+        v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
     }
 }
