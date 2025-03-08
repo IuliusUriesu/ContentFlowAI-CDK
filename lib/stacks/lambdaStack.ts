@@ -1,7 +1,7 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { AppStackProps } from '../utils/appStackProps';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { AppStackProps } from "../utils/appStackProps";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 
 export class LambdaStack extends cdk.Stack {
     public helloFunction: lambda.IFunction;

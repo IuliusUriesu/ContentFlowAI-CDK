@@ -6,14 +6,13 @@ export enum StageName {
 }
 
 interface StageProps {
-    stageName: StageName,
-    env: { account: string, region: string },
-    websiteDomain: string,
-    apiDomain: string,
+    stageName: StageName;
+    env: { account: string; region: string };
+    websiteDomain: string;
+    apiDomain: string;
 }
 
-export const stageProps: StageProps[] = 
-[
+export const stageProps: StageProps[] = [
     {
         stageName: StageName.DEV,
         env: { account: "992382391116", region: "eu-central-1" },

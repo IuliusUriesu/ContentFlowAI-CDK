@@ -1,12 +1,12 @@
-import * as cdk from 'aws-cdk-lib';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import { Construct } from 'constructs';
-import { AppStackProps } from '../utils/appStackProps';
-import { APP_NAME } from '../config/constants';
+import * as cdk from "aws-cdk-lib";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import { Construct } from "constructs";
+import { AppStackProps } from "../utils/appStackProps";
+import { APP_NAME } from "../config/constants";
 
 interface DnsStackProps extends AppStackProps {
-    websiteDomain: string,
-    apiDomain: string,
+    websiteDomain: string;
+    apiDomain: string;
 }
 
 export class DnsStack extends cdk.Stack {
