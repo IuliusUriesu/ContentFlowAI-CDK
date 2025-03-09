@@ -12,11 +12,12 @@ export class LambdaStack extends cdk.Stack {
         const { stageName } = props;
 
         const codePath = "../ContentFlowAI-Lambda/dist";
+        const lambdaCodeAsset = lambda.Code.fromAsset(codePath);
 
         this.defaultFunction = new lambda.Function(this, `${stageName}-DefaultFunction`, {
             runtime: lambda.Runtime.NODEJS_22_X,
             handler: "index.defaultHandler",
-            code: lambda.Code.fromAsset(codePath),
+            code: lambdaCodeAsset,
         });
     }
 }

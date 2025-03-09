@@ -6,6 +6,7 @@ import { DnsStack } from "../lib/stacks/dnsStack";
 import { APP_NAME } from "../lib/config/constants";
 import { ApiStack } from "../lib/stacks/apiStack";
 import { LambdaStack } from "../lib/stacks/lambdaStack";
+import { CognitoStack } from "../lib/stacks/cognitoStack";
 
 const app = new cdk.App();
 
@@ -29,6 +30,10 @@ for (const props of stageProps) {
         apiDomain,
     });
 
+    const cognitoStack = new CognitoStack(app, `${stageName}-CognitoStack`, {
+        ...sharedStackProps,
+    });
+
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
         ...sharedStackProps,
     });
@@ -38,5 +43,6 @@ for (const props of stageProps) {
         defaultFunction: lambdaStack.defaultFunction,
         apiDomain,
         apiCertificate: dnsStack.apiCertificate,
+        userPool: cognitoStack.userPool,
     });
 }

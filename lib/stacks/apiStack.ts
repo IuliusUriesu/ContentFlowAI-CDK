@@ -6,22 +6,24 @@ import { APP_NAME } from "../config/constants";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as cognito from "aws-cdk-lib/aws-cognito";
 import { StageName } from "../config/stageConfig";
 
 interface ApiStackProps extends AppStackProps {
     defaultFunction: lambda.IFunction;
     apiDomain: string;
     apiCertificate: acm.ICertificate;
+    userPool: cognito.IUserPool;
 }
 
 export class ApiStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ApiStackProps) {
         super(scope, id, props);
 
-        const { stageName, defaultFunction, apiDomain, apiCertificate } = props;
+        const { stageName, defaultFunction, apiDomain, apiCertificate, userPool } = props;
 
+        // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
-
         const logGroup = new logs.LogGroup(this, logGroupName, {
             retention:
                 stageName === StageName.PROD
@@ -30,8 +32,14 @@ export class ApiStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
 
-        const apiName = `${stageName}-${APP_NAME}-API`;
+        // Cognito User Pool Authorizer
+        const authorizerName = `${stageName}-Authorizer`;
+        const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, authorizerName, {
+            cognitoUserPools: [userPool],
+        });
 
+        // API Gateway
+        const apiName = `${stageName}-${APP_NAME}-API`;
         const api = new apigateway.LambdaRestApi(this, apiName, {
             handler: defaultFunction, // This is used only if proxy is set to true
             proxy: false,
@@ -47,6 +55,10 @@ export class ApiStack extends cdk.Stack {
                 metricsEnabled: true,
                 throttlingBurstLimit: 500,
                 throttlingRateLimit: 1000,
+            },
+            defaultMethodOptions: {
+                authorizationType: apigateway.AuthorizationType.COGNITO,
+                authorizer,
             },
             restApiName: apiName,
         });
