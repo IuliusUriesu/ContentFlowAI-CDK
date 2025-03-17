@@ -3,24 +3,35 @@ import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { AppStackProps } from "../utils/appStackProps";
 import { APP_NAME } from "../config/constants";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { StageName } from "../config/stageConfig";
 
 interface ApiStackProps extends AppStackProps {
-    defaultFunction: lambda.IFunction;
     apiDomain: string;
     apiCertificate: acm.ICertificate;
     userPool: cognito.IUserPool;
+    defaultFunction: lambda.IFunction;
+    getAllRequests: lambda.IFunction;
+    getRequest: lambda.IFunction;
+    getAllGeneratedContent: lambda.IFunction;
+    getGeneratedContentPiece: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ApiStackProps) {
         super(scope, id, props);
 
-        const { stageName, defaultFunction, apiDomain, apiCertificate, userPool } = props;
+        const { stageName, apiDomain, apiCertificate, userPool } = props;
+        const {
+            defaultFunction,
+            getAllRequests,
+            getRequest,
+            getAllGeneratedContent,
+            getGeneratedContentPiece,
+        } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -65,5 +76,8 @@ export class ApiStack extends cdk.Stack {
 
         const v1 = api.root.addResource("v1");
         v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
+
+        const requests = v1.addResource("requests");
+        requests.addMethod("GET", new apigateway.LambdaIntegration(getAllRequests)); // GET /v1/requests
     }
 }

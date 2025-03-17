@@ -36,13 +36,18 @@ for (const props of stageProps) {
 
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
         ...sharedStackProps,
+        appDataTable: dynamoDbStack.appDataTable,
     });
 
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {
         ...sharedStackProps,
-        defaultFunction: lambdaStack.defaultFunction,
         apiDomain,
         apiCertificate: dnsStack.apiCertificate,
         userPool: cognitoStack.userPool,
+        defaultFunction: lambdaStack.defaultFunction,
+        getAllRequests: lambdaStack.getAllRequests,
+        getRequest: lambdaStack.getRequest,
+        getAllGeneratedContent: lambdaStack.getAllGeneratedContent,
+        getGeneratedContentPiece: lambdaStack.getGeneratedContentPiece,
     });
 }

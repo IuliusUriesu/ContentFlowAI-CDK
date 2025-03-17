@@ -30,5 +30,17 @@ export class CognitoStack extends cdk.Stack {
             },
             accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
         });
+
+        const appClientName = `${stageName}-${APP_NAME}-AppClient`;
+        this.userPool.addClient(appClientName, {
+            userPoolClientName: appClientName,
+            authFlows: {
+                userPassword: true,
+            },
+            idTokenValidity: cdk.Duration.minutes(60),
+            accessTokenValidity: cdk.Duration.minutes(60),
+            refreshTokenValidity: cdk.Duration.days(5),
+            oAuth: {},
+        });
     }
 }
