@@ -14,10 +14,6 @@ interface ApiStackProps extends AppStackProps {
     apiCertificate: acm.ICertificate;
     userPool: cognito.IUserPool;
     defaultFunction: lambda.IFunction;
-    getAllRequests: lambda.IFunction;
-    getRequest: lambda.IFunction;
-    getAllGeneratedContent: lambda.IFunction;
-    getGeneratedContentPiece: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -25,13 +21,7 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const {
-            defaultFunction,
-            getAllRequests,
-            getRequest,
-            getAllGeneratedContent,
-            getGeneratedContentPiece,
-        } = props;
+        const { defaultFunction } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -76,8 +66,5 @@ export class ApiStack extends cdk.Stack {
 
         const v1 = api.root.addResource("v1");
         v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
-
-        const requests = v1.addResource("requests");
-        requests.addMethod("GET", new apigateway.LambdaIntegration(getAllRequests)); // GET /v1/requests
     }
 }

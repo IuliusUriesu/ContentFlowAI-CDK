@@ -12,10 +12,6 @@ export class LambdaStack extends cdk.Stack {
     private lambdaCodeAsset: lambda.AssetCode;
 
     public defaultFunction: lambda.IFunction;
-    public getAllRequests: lambda.IFunction;
-    public getRequest: lambda.IFunction;
-    public getAllGeneratedContent: lambda.IFunction;
-    public getGeneratedContentPiece: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -32,31 +28,6 @@ export class LambdaStack extends cdk.Stack {
         this.defaultFunction = this.createFunction(
             `${stageName}-DefaultFunction`,
             "index.defaultHandler",
-            environment,
-        );
-
-        this.getAllRequests = this.createFunction(
-            `${stageName}-GetAllRequests`,
-            "index.defaultHandler",
-            environment,
-        );
-
-        this.getRequest = this.createFunction(
-            `${stageName}-GetRequest`,
-            "index.defaultHandler",
-            environment,
-        );
-
-        this.getAllGeneratedContent = this.createFunction(
-            `${stageName}-GetAllGeneratedContent`,
-            "index.defaultHandler",
-            environment,
-        );
-
-        this.getGeneratedContentPiece = this.createFunction(
-            `${stageName}-GetGeneratedContentPiece`,
-            "index.defaultHandler",
-            environment,
         );
     }
 
