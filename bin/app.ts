@@ -45,5 +45,6 @@ for (const props of stageProps) {
         apiCertificate: dnsStack.apiCertificate,
         userPool: cognitoStack.userPool,
         defaultFunction: lambdaStack.defaultFunction,
+        updateBrandDetails: lambdaStack.updateBrandDetails,
     });
 }

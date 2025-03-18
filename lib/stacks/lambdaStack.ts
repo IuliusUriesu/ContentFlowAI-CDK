@@ -12,6 +12,7 @@ export class LambdaStack extends cdk.Stack {
     private lambdaCodeAsset: lambda.AssetCode;
 
     public defaultFunction: lambda.IFunction;
+    public updateBrandDetails: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -27,8 +28,16 @@ export class LambdaStack extends cdk.Stack {
 
         this.defaultFunction = this.createFunction(
             `${stageName}-DefaultFunction`,
-            "index.defaultHandler",
+            "index.defaultFunctionHandler",
         );
+
+        this.updateBrandDetails = this.createFunction(
+            `${stageName}-UpdateBrandDetails`,
+            "index.updateBrandDetailsHandler",
+            environment,
+        );
+
+        appDataTable.grantReadWriteData(this.updateBrandDetails);
     }
 
     private createFunction(
