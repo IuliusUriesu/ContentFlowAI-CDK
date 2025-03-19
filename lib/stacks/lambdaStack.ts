@@ -3,6 +3,8 @@ import { Construct } from "constructs";
 import { AppStackProps } from "../utils/appStackProps";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import { APP_NAME } from "../config/constants";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
@@ -19,12 +21,17 @@ export class LambdaStack extends cdk.Stack {
 
         const { stageName, appDataTable } = props;
 
+        // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
         this.lambdaCodeAsset = lambda.Code.fromAsset(codePath);
 
-        const environment = {
-            APP_DATA_TABLE_NAME: appDataTable.tableName,
-        };
+        // Anthropic API Key
+        const anthropicApiKeySecretName = `${stageName}-${APP_NAME}/AnthropicApiKey`;
+        const anthropicApiKeySecert = secretsmanager.Secret.fromSecretNameV2(
+            this,
+            anthropicApiKeySecretName,
+            anthropicApiKeySecretName,
+        );
 
         this.defaultFunction = this.createFunction(
             `${stageName}-DefaultFunction`,
@@ -34,10 +41,14 @@ export class LambdaStack extends cdk.Stack {
         this.updateBrandDetails = this.createFunction(
             `${stageName}-UpdateBrandDetails`,
             "index.updateBrandDetailsHandler",
-            environment,
+            {
+                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+            },
         );
 
         appDataTable.grantReadWriteData(this.updateBrandDetails);
+        anthropicApiKeySecert.grantRead(this.updateBrandDetails);
     }
 
     private createFunction(
