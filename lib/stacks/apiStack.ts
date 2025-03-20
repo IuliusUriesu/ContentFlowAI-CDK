@@ -14,6 +14,7 @@ interface ApiStackProps extends AppStackProps {
     apiCertificate: acm.ICertificate;
     userPool: cognito.IUserPool;
     defaultFunction: lambda.IFunction;
+    createUserProfile: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -21,7 +22,7 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const { defaultFunction } = props;
+        const { defaultFunction, createUserProfile } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -66,5 +67,8 @@ export class ApiStack extends cdk.Stack {
 
         const v1 = api.root.addResource("v1");
         v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
+
+        const profile = v1.addResource("profile");
+        profile.addMethod("POST", new apigateway.LambdaIntegration(createUserProfile)); // POST /v1/profile
     }
 }
