@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import { AppStackProps } from "../utils/appStackProps";
+import { AppStackProps } from "../utils/utils";
 import { APP_NAME } from "../config/constants";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -14,7 +14,6 @@ interface ApiStackProps extends AppStackProps {
     apiCertificate: acm.ICertificate;
     userPool: cognito.IUserPool;
     defaultFunction: lambda.IFunction;
-    updateBrandDetails: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -22,7 +21,7 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const { defaultFunction, updateBrandDetails } = props;
+        const { defaultFunction } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -67,8 +66,5 @@ export class ApiStack extends cdk.Stack {
 
         const v1 = api.root.addResource("v1");
         v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
-
-        const brand = v1.addResource("brand");
-        brand.addMethod("PUT", new apigateway.LambdaIntegration(updateBrandDetails)); // PUT /v1/brand
     }
 }
