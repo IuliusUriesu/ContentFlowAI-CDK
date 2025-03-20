@@ -40,10 +40,10 @@ export class LambdaStack extends cdk.Stack {
             anthropicApiKeySecretName,
         );
 
-        // Anthropic SDK Layer
-        const anthropicSdkLayerName = `${stageName}-AnthropicSdkLayer`;
-        const anthropicSdkLayer = new lambda.LayerVersion(this, anthropicSdkLayerName, {
-            code: lambda.Code.fromAsset("../ContentFlowAI-Lambda/layers/anthropic-sdk-layer"),
+        // Node Modules Layer
+        const nodeModulesLayerName = `${stageName}-NodeModulesLayer`;
+        const nodeModulesLayer = new lambda.LayerVersion(this, nodeModulesLayerName, {
+            code: lambda.Code.fromAsset("../ContentFlowAI-Lambda/layers/node-modules-layer"),
         });
 
         // Lambda Functions
@@ -59,7 +59,7 @@ export class LambdaStack extends cdk.Stack {
                 APP_DATA_TABLE_NAME: appDataTable.tableName,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
             },
-            layers: [anthropicSdkLayer],
+            layers: [nodeModulesLayer],
         });
 
         this.exportValue(this.createUserProfile.functionArn);
