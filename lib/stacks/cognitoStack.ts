@@ -37,8 +37,8 @@ export class CognitoStack extends cdk.Stack {
             authFlows: {
                 userPassword: true,
             },
-            idTokenValidity: cdk.Duration.minutes(60),
-            accessTokenValidity: cdk.Duration.minutes(60),
+            idTokenValidity: cdk.Duration.minutes(300),
+            accessTokenValidity: cdk.Duration.minutes(300),
             refreshTokenValidity: cdk.Duration.days(5),
             oAuth: {},
         });

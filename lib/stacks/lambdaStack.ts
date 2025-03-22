@@ -4,10 +4,12 @@ import { AppStackProps } from "../utils/utils";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import { APP_NAME } from "../config/constants";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
+    userProfileQueue: sqs.IQueue;
 }
 
 interface CreateFunctionInput {
@@ -26,7 +28,7 @@ export class LambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
 
-        const { stageName, appDataTable } = props;
+        const { stageName, appDataTable, userProfileQueue } = props;
 
         // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
@@ -46,26 +48,27 @@ export class LambdaStack extends cdk.Stack {
             code: lambda.Code.fromAsset("../ContentFlowAI-Lambda/layers/node-modules-layer"),
         });
 
-        // Lambda Functions
+        // Default Function
         this.defaultFunction = this.createFunction({
             functionName: `${stageName}-DefaultFunction`,
             handler: "index.defaultFunctionHandler",
         });
 
+        // CreateUserProfile Function
         this.createUserProfile = this.createFunction({
             functionName: `${stageName}-CreateUserProfile`,
             handler: "index.createUserProfileHandler",
             environment: {
                 APP_DATA_TABLE_NAME: appDataTable.tableName,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+                USER_PROFILE_QUEUE_URL: userProfileQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
         });
 
-        this.exportValue(this.createUserProfile.functionArn);
-
         appDataTable.grantReadWriteData(this.createUserProfile);
         anthropicApiKeySecert.grantRead(this.createUserProfile);
+        userProfileQueue.grantSendMessages(this.createUserProfile);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {

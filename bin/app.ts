@@ -7,6 +7,7 @@ import { APP_NAME } from "../lib/config/constants";
 import { ApiStack } from "../lib/stacks/apiStack";
 import { LambdaStack } from "../lib/stacks/lambdaStack";
 import { CognitoStack } from "../lib/stacks/cognitoStack";
+import { SqsStack } from "../lib/stacks/sqsStack";
 
 const app = new cdk.App();
 
@@ -34,9 +35,14 @@ for (const props of stageProps) {
         ...sharedStackProps,
     });
 
+    const sqsStack = new SqsStack(app, `${stageName}-SqsStack`, {
+        ...sharedStackProps,
+    });
+
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
         ...sharedStackProps,
         appDataTable: dynamoDbStack.appDataTable,
+        userProfileQueue: sqsStack.userProfileQueue,
     });
 
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {
