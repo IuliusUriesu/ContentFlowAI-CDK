@@ -9,7 +9,7 @@ import { APP_NAME } from "../config/constants";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
-    userProfileQueue: sqs.IQueue;
+    brandSummaryRequestQueue: sqs.IQueue;
 }
 
 interface CreateFunctionInput {
@@ -28,7 +28,7 @@ export class LambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
 
-        const { stageName, appDataTable, userProfileQueue } = props;
+        const { stageName, appDataTable, brandSummaryRequestQueue } = props;
 
         // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
@@ -51,24 +51,24 @@ export class LambdaStack extends cdk.Stack {
         // Default Function
         this.defaultFunction = this.createFunction({
             functionName: `${stageName}-DefaultFunction`,
-            handler: "index.defaultFunctionHandler",
+            handler: "index.defaultFunction",
         });
 
         // CreateUserProfile Function
         this.createUserProfile = this.createFunction({
             functionName: `${stageName}-CreateUserProfile`,
-            handler: "index.createUserProfileHandler",
+            handler: "index.createUserProfile",
             environment: {
                 APP_DATA_TABLE_NAME: appDataTable.tableName,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
-                USER_PROFILE_QUEUE_URL: userProfileQueue.queueUrl,
+                BRAND_SUMMARY_REQUEST_QUEUE_URL: brandSummaryRequestQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
         });
 
         appDataTable.grantReadWriteData(this.createUserProfile);
         anthropicApiKeySecert.grantRead(this.createUserProfile);
-        userProfileQueue.grantSendMessages(this.createUserProfile);
+        brandSummaryRequestQueue.grantSendMessages(this.createUserProfile);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
