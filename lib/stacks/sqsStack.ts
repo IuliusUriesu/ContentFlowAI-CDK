@@ -15,7 +15,7 @@ export class SqsStack extends cdk.Stack {
         const brandSummaryRequestQueueName = `${stageName}-${APP_NAME}-BrandSummaryRequestQueue`;
         this.brandSummaryRequestQueue = new sqs.Queue(this, brandSummaryRequestQueueName, {
             queueName: brandSummaryRequestQueueName,
-            visibilityTimeout: cdk.Duration.seconds(120),
+            visibilityTimeout: cdk.Duration.seconds(150),
             retentionPeriod: cdk.Duration.days(1),
         });
     }

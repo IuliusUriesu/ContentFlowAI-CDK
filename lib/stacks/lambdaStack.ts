@@ -6,6 +6,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { APP_NAME } from "../config/constants";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
@@ -17,6 +18,7 @@ interface CreateFunctionInput {
     handler: string;
     environment?: { [key: string]: string };
     layers?: lambda.ILayerVersion[];
+    timeout?: cdk.Duration;
 }
 
 export class LambdaStack extends cdk.Stack {
@@ -24,6 +26,8 @@ export class LambdaStack extends cdk.Stack {
 
     public defaultFunction: lambda.IFunction;
     public createUserProfile: lambda.IFunction;
+
+    private writeBrandSummary: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -60,28 +64,50 @@ export class LambdaStack extends cdk.Stack {
             handler: "index.createUserProfile",
             environment: {
                 APP_DATA_TABLE_NAME: appDataTable.tableName,
-                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
                 BRAND_SUMMARY_REQUEST_QUEUE_URL: brandSummaryRequestQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
         });
 
         appDataTable.grantReadWriteData(this.createUserProfile);
-        anthropicApiKeySecert.grantRead(this.createUserProfile);
         brandSummaryRequestQueue.grantSendMessages(this.createUserProfile);
+
+        // WriteBrandSummary Function
+        this.writeBrandSummary = this.createFunction({
+            functionName: `${stageName}-WriteBrandSummary`,
+            handler: "index.writeBrandSummary",
+            environment: {
+                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+            },
+            layers: [nodeModulesLayer],
+            timeout: cdk.Duration.minutes(2),
+        });
+
+        appDataTable.grantReadWriteData(this.writeBrandSummary);
+        anthropicApiKeySecert.grantRead(this.writeBrandSummary);
+        brandSummaryRequestQueue.grantConsumeMessages(this.writeBrandSummary);
+
+        this.writeBrandSummary.addEventSource(
+            new SqsEventSource(brandSummaryRequestQueue, {
+                batchSize: 1,
+                maxBatchingWindow: cdk.Duration.minutes(5),
+                reportBatchItemFailures: true,
+            }),
+        );
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
-        const { functionName, handler, environment, layers } = input;
+        const { functionName, handler, environment, layers, timeout } = input;
         return new lambda.Function(this, functionName, {
             functionName,
             runtime: lambda.Runtime.NODEJS_22_X,
             handler,
             code: this.lambdaCodeAsset,
             memorySize: 512,
-            timeout: cdk.Duration.seconds(5),
             environment,
             layers,
+            timeout: timeout ?? cdk.Duration.seconds(10),
         });
     }
 }
