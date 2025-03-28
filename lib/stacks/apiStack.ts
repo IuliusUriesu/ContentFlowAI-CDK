@@ -15,6 +15,7 @@ interface ApiStackProps extends AppStackProps {
     userPool: cognito.IUserPool;
     defaultFunction: lambda.IFunction;
     createUserProfile: lambda.IFunction;
+    createContentRequest: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -22,7 +23,7 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const { defaultFunction, createUserProfile } = props;
+        const { defaultFunction, createUserProfile, createContentRequest } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -70,5 +71,8 @@ export class ApiStack extends cdk.Stack {
 
         const profile = v1.addResource("profile");
         profile.addMethod("POST", new apigateway.LambdaIntegration(createUserProfile)); // POST /v1/profile
+
+        const contentRequests = v1.addResource("content-requests");
+        contentRequests.addMethod("POST", new apigateway.LambdaIntegration(createContentRequest)); // POST /v1/content-requests
     }
 }

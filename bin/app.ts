@@ -52,5 +52,6 @@ for (const props of stageProps) {
         userPool: cognitoStack.userPool,
         defaultFunction: lambdaStack.defaultFunction,
         createUserProfile: lambdaStack.createUserProfile,
+        createContentRequest: lambdaStack.createContentRequest,
     });
 }

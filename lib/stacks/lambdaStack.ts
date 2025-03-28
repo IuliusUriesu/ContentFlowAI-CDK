@@ -26,6 +26,7 @@ export class LambdaStack extends cdk.Stack {
 
     public defaultFunction: lambda.IFunction;
     public createUserProfile: lambda.IFunction;
+    public createContentRequest: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
 
@@ -95,6 +96,21 @@ export class LambdaStack extends cdk.Stack {
                 reportBatchItemFailures: true,
             }),
         );
+
+        // CreateContentRequest Function
+        this.createContentRequest = this.createFunction({
+            functionName: `${stageName}-CreateContentRequest`,
+            handler: "index.createContentRequest",
+            environment: {
+                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+            },
+            layers: [nodeModulesLayer],
+            timeout: cdk.Duration.seconds(25),
+        });
+
+        appDataTable.grantReadWriteData(this.createContentRequest);
+        anthropicApiKeySecert.grantRead(this.createContentRequest);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
