@@ -43,6 +43,7 @@ for (const props of stageProps) {
         ...sharedStackProps,
         appDataTable: dynamoDbStack.appDataTable,
         brandSummaryRequestQueue: sqsStack.brandSummaryRequestQueue,
+        contentRequestQueue: sqsStack.contentRequestQueue,
     });
 
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {

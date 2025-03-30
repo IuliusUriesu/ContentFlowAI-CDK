@@ -11,6 +11,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
     brandSummaryRequestQueue: sqs.IQueue;
+    contentRequestQueue: sqs.IQueue;
 }
 
 interface CreateFunctionInput {
@@ -29,11 +30,12 @@ export class LambdaStack extends cdk.Stack {
     public createContentRequest: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
+    private generateContent: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
 
-        const { stageName, appDataTable, brandSummaryRequestQueue } = props;
+        const { stageName, appDataTable, brandSummaryRequestQueue, contentRequestQueue } = props;
 
         // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
@@ -57,6 +59,7 @@ export class LambdaStack extends cdk.Stack {
         this.defaultFunction = this.createFunction({
             functionName: `${stageName}-DefaultFunction`,
             handler: "index.defaultFunction",
+            layers: [nodeModulesLayer],
         });
 
         // CreateUserProfile Function
@@ -82,7 +85,7 @@ export class LambdaStack extends cdk.Stack {
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
             },
             layers: [nodeModulesLayer],
-            timeout: cdk.Duration.minutes(2),
+            timeout: cdk.Duration.seconds(90),
         });
 
         appDataTable.grantReadWriteData(this.writeBrandSummary);
@@ -92,7 +95,7 @@ export class LambdaStack extends cdk.Stack {
         this.writeBrandSummary.addEventSource(
             new SqsEventSource(brandSummaryRequestQueue, {
                 batchSize: 1,
-                maxBatchingWindow: cdk.Duration.minutes(5),
+                maxBatchingWindow: cdk.Duration.seconds(60),
                 reportBatchItemFailures: true,
             }),
         );
@@ -104,6 +107,7 @@ export class LambdaStack extends cdk.Stack {
             environment: {
                 APP_DATA_TABLE_NAME: appDataTable.tableName,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+                CONTENT_REQUEST_QUEUE_URL: contentRequestQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
             timeout: cdk.Duration.seconds(25),
@@ -111,6 +115,31 @@ export class LambdaStack extends cdk.Stack {
 
         appDataTable.grantReadWriteData(this.createContentRequest);
         anthropicApiKeySecert.grantRead(this.createContentRequest);
+        contentRequestQueue.grantSendMessages(this.createContentRequest);
+
+        // GenerateContent Function
+        this.generateContent = this.createFunction({
+            functionName: `${stageName}-GenerateContent`,
+            handler: "index.generateContent",
+            environment: {
+                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+            },
+            layers: [nodeModulesLayer],
+            timeout: cdk.Duration.seconds(120),
+        });
+
+        appDataTable.grantReadWriteData(this.generateContent);
+        anthropicApiKeySecert.grantRead(this.generateContent);
+        contentRequestQueue.grantConsumeMessages(this.generateContent);
+
+        this.generateContent.addEventSource(
+            new SqsEventSource(contentRequestQueue, {
+                batchSize: 1,
+                maxBatchingWindow: cdk.Duration.seconds(60),
+                reportBatchItemFailures: true,
+            }),
+        );
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
