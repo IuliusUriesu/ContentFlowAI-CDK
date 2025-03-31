@@ -6,6 +6,7 @@ import { APP_NAME } from "../config/constants";
 
 export class DynamoDbStack extends cdk.Stack {
     public appDataTable: dynamodb.TableV2;
+    public generatedContentGsiName: string;
 
     constructor(scope: Construct, id: string, props: AppStackProps) {
         super(scope, id, props);
@@ -19,9 +20,10 @@ export class DynamoDbStack extends cdk.Stack {
             billing: dynamodb.Billing.onDemand(),
         });
 
+        this.generatedContentGsiName = "generated_content_gsi";
         this.appDataTable.addGlobalSecondaryIndex({
-            indexName: "generated_content_index",
-            partitionKey: { name: "generated_content_id", type: dynamodb.AttributeType.STRING },
+            indexName: this.generatedContentGsiName,
+            partitionKey: { name: "generatedContentId", type: dynamodb.AttributeType.STRING },
             projectionType: dynamodb.ProjectionType.ALL,
         });
     }

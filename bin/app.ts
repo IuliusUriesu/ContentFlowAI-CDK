@@ -56,5 +56,6 @@ for (const props of stageProps) {
         createContentRequest: lambdaStack.createContentRequest,
         getAllContentRequests: lambdaStack.getAllContentRequests,
         getContentRequest: lambdaStack.getContentRequest,
+        getAllGeneratedContent: lambdaStack.getAllGeneratedContent,
     });
 }
