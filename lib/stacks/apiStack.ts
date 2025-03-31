@@ -17,6 +17,7 @@ interface ApiStackProps extends AppStackProps {
     createUserProfile: lambda.IFunction;
     createContentRequest: lambda.IFunction;
     getAllContentRequests: lambda.IFunction;
+    getContentRequest: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -24,8 +25,13 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const { defaultFunction, createUserProfile, createContentRequest, getAllContentRequests } =
-            props;
+        const {
+            defaultFunction,
+            createUserProfile,
+            createContentRequest,
+            getAllContentRequests,
+            getContentRequest,
+        } = props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -68,14 +74,25 @@ export class ApiStack extends cdk.Stack {
             restApiName: apiName,
         });
 
-        const v1 = api.root.addResource("v1");
-        v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction)); // GET /v1
+        // Resources
+        const v1 = api.root.addResource("v1"); // /v1
+        const profile = v1.addResource("profile"); // /v1/profile
+        const contentRequests = v1.addResource("content-requests"); // /v1/content-requests
+        const contentRequestId = contentRequests.addResource("{content-request-id}"); // /v1/content-requests/{content-request-id}
 
-        const profile = v1.addResource("profile");
-        profile.addMethod("POST", new apigateway.LambdaIntegration(createUserProfile)); // POST /v1/profile
+        // GET /v1
+        v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction));
 
-        const contentRequests = v1.addResource("content-requests");
-        contentRequests.addMethod("POST", new apigateway.LambdaIntegration(createContentRequest)); // POST /v1/content-requests
-        contentRequests.addMethod("GET", new apigateway.LambdaIntegration(getAllContentRequests)); // GET /v1/content-requests
+        // POST /v1/profile
+        profile.addMethod("POST", new apigateway.LambdaIntegration(createUserProfile));
+
+        // POST /v1/content-requests
+        contentRequests.addMethod("POST", new apigateway.LambdaIntegration(createContentRequest));
+
+        // GET /v1/content-requests
+        contentRequests.addMethod("GET", new apigateway.LambdaIntegration(getAllContentRequests));
+
+        // GET /v1/content-requests/{content-request-id}
+        contentRequestId.addMethod("GET", new apigateway.LambdaIntegration(getContentRequest));
     }
 }
