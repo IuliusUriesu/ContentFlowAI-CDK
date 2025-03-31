@@ -16,6 +16,7 @@ interface ApiStackProps extends AppStackProps {
     defaultFunction: lambda.IFunction;
     createUserProfile: lambda.IFunction;
     createContentRequest: lambda.IFunction;
+    getAllContentRequests: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -23,7 +24,8 @@ export class ApiStack extends cdk.Stack {
         super(scope, id, props);
 
         const { stageName, apiDomain, apiCertificate, userPool } = props;
-        const { defaultFunction, createUserProfile, createContentRequest } = props;
+        const { defaultFunction, createUserProfile, createContentRequest, getAllContentRequests } =
+            props;
 
         // Log Group
         const logGroupName = `${stageName}-ApiLogGroup`;
@@ -74,5 +76,6 @@ export class ApiStack extends cdk.Stack {
 
         const contentRequests = v1.addResource("content-requests");
         contentRequests.addMethod("POST", new apigateway.LambdaIntegration(createContentRequest)); // POST /v1/content-requests
+        contentRequests.addMethod("GET", new apigateway.LambdaIntegration(getAllContentRequests)); // GET /v1/content-requests
     }
 }
