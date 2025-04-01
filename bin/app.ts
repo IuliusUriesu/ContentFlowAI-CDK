@@ -42,6 +42,7 @@ for (const props of stageProps) {
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
         ...sharedStackProps,
         appDataTable: dynamoDbStack.appDataTable,
+        generatedContentGsiName: dynamoDbStack.generatedContentGsiName,
         brandSummaryRequestQueue: sqsStack.brandSummaryRequestQueue,
         contentRequestQueue: sqsStack.contentRequestQueue,
     });
@@ -57,5 +58,6 @@ for (const props of stageProps) {
         getAllContentRequests: lambdaStack.getAllContentRequests,
         getContentRequest: lambdaStack.getContentRequest,
         getAllGeneratedContent: lambdaStack.getAllGeneratedContent,
+        getGeneratedContentPiece: lambdaStack.getGeneratedContentPiece,
     });
 }

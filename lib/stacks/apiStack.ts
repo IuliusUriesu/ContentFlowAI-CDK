@@ -19,6 +19,7 @@ interface ApiStackProps extends AppStackProps {
     getAllContentRequests: lambda.IFunction;
     getContentRequest: lambda.IFunction;
     getAllGeneratedContent: lambda.IFunction;
+    getGeneratedContentPiece: lambda.IFunction;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -33,6 +34,7 @@ export class ApiStack extends cdk.Stack {
             getAllContentRequests,
             getContentRequest,
             getAllGeneratedContent,
+            getGeneratedContentPiece,
         } = props;
 
         // Log Group
@@ -82,6 +84,8 @@ export class ApiStack extends cdk.Stack {
         const contentRequests = v1.addResource("content-requests"); // /v1/content-requests
         const contentRequestId = contentRequests.addResource("{content-request-id}"); // /v1/content-requests/{content-request-id}
         const contentRequestGeneratedContent = contentRequestId.addResource("generated-content"); // /v1/content-requests/{content-request-id}/generated-content
+        const generatedContent = v1.addResource("generated-content"); // /v1/generated-content
+        const generatedContentId = generatedContent.addResource("{generated-content-id}"); // /v1/generated-content/{generated-content-id}
 
         // GET /v1
         v1.addMethod("GET", new apigateway.LambdaIntegration(defaultFunction));
@@ -102,6 +106,12 @@ export class ApiStack extends cdk.Stack {
         contentRequestGeneratedContent.addMethod(
             "GET",
             new apigateway.LambdaIntegration(getAllGeneratedContent),
+        );
+
+        // GET /v1/generated-content/{generated-content-id}
+        generatedContentId.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getGeneratedContentPiece),
         );
     }
 }

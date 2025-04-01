@@ -10,6 +10,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
+    generatedContentGsiName: string;
     brandSummaryRequestQueue: sqs.IQueue;
     contentRequestQueue: sqs.IQueue;
 }
@@ -31,6 +32,7 @@ export class LambdaStack extends cdk.Stack {
     public getAllContentRequests: lambda.IFunction;
     public getContentRequest: lambda.IFunction;
     public getAllGeneratedContent: lambda.IFunction;
+    public getGeneratedContentPiece: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
     private generateContent: lambda.IFunction;
@@ -38,7 +40,13 @@ export class LambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
 
-        const { stageName, appDataTable, brandSummaryRequestQueue, contentRequestQueue } = props;
+        const {
+            stageName,
+            appDataTable,
+            generatedContentGsiName,
+            brandSummaryRequestQueue,
+            contentRequestQueue,
+        } = props;
 
         // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
@@ -58,6 +66,12 @@ export class LambdaStack extends cdk.Stack {
             code: lambda.Code.fromAsset("../ContentFlowAI-Lambda/layers/node-modules-layer"),
         });
 
+        // DynamoDB Environment Variables
+        const ddbEnv = {
+            APP_DATA_TABLE_NAME: appDataTable.tableName,
+            GENERATED_CONTENT_GSI_NAME: generatedContentGsiName,
+        };
+
         // Default Function
         this.defaultFunction = this.createFunction({
             functionName: `${stageName}-DefaultFunction`,
@@ -70,7 +84,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-CreateUserProfile`,
             handler: "index.createUserProfile",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
                 BRAND_SUMMARY_REQUEST_QUEUE_URL: brandSummaryRequestQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
@@ -84,7 +98,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-WriteBrandSummary`,
             handler: "index.writeBrandSummary",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
             },
             layers: [nodeModulesLayer],
@@ -108,7 +122,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-CreateContentRequest`,
             handler: "index.createContentRequest",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
                 CONTENT_REQUEST_QUEUE_URL: contentRequestQueue.queueUrl,
             },
@@ -125,7 +139,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-GenerateContent`,
             handler: "index.generateContent",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
                 ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
             },
             layers: [nodeModulesLayer],
@@ -149,7 +163,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-GetAllContentRequests`,
             handler: "index.getAllContentRequests",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
             },
             layers: [nodeModulesLayer],
         });
@@ -161,7 +175,7 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-GetContentRequest`,
             handler: "index.getContentRequest",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
             },
             layers: [nodeModulesLayer],
         });
@@ -173,12 +187,24 @@ export class LambdaStack extends cdk.Stack {
             functionName: `${stageName}-GetAllGeneratedContent`,
             handler: "index.getAllGeneratedContent",
             environment: {
-                APP_DATA_TABLE_NAME: appDataTable.tableName,
+                ...ddbEnv,
             },
             layers: [nodeModulesLayer],
         });
 
         appDataTable.grantReadWriteData(this.getAllGeneratedContent);
+
+        // GetGeneratedContentPiece Function
+        this.getGeneratedContentPiece = this.createFunction({
+            functionName: `${stageName}-GetGeneratedContentPiece`,
+            handler: "index.getGeneratedContentPiece",
+            environment: {
+                ...ddbEnv,
+            },
+            layers: [nodeModulesLayer],
+        });
+
+        appDataTable.grantReadWriteData(this.getGeneratedContentPiece);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
