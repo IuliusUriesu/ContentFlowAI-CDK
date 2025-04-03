@@ -8,6 +8,7 @@ import { ApiStack } from "../lib/stacks/apiStack";
 import { LambdaStack } from "../lib/stacks/lambdaStack";
 import { CognitoStack } from "../lib/stacks/cognitoStack";
 import { SqsStack } from "../lib/stacks/sqsStack";
+import { WebsiteStack } from "../lib/stacks/websiteStack";
 
 const app = new cdk.App();
 
@@ -59,5 +60,9 @@ for (const props of stageProps) {
         getContentRequest: lambdaStack.getContentRequest,
         getAllGeneratedContent: lambdaStack.getAllGeneratedContent,
         getGeneratedContentPiece: lambdaStack.getGeneratedContentPiece,
+    });
+
+    const websiteStack = new WebsiteStack(app, `${stageName}-WebsiteStack`, {
+        ...sharedStackProps,
     });
 }

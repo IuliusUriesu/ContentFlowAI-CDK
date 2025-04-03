@@ -9,7 +9,8 @@
         "watch": "tsc -w",
         "test": "jest",
         "cdk": "cdk",
-        "lint": "eslint **/*.ts --ignore-pattern **/*.d.ts --fix && prettier --write **/*.ts"
+        "lint": "eslint **/*.ts --ignore-pattern **/*.d.ts --fix && prettier --write **/*.ts",
+        "deploy-website-dev": "bash ./deploy-website.sh Dev-WebsiteStack eu-central-1"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.0",
