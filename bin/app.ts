@@ -2,7 +2,7 @@
 import * as cdk from "aws-cdk-lib";
 import { DynamoDbStack } from "../lib/stacks/dynamoDbStack";
 import { stageProps } from "../lib/config/stageConfig";
-import { DnsStack } from "../lib/stacks/dnsStack";
+import { ApiCertificateStack } from "../lib/stacks/apiCertificateStack";
 import { APP_NAME } from "../lib/config/constants";
 import { ApiStack } from "../lib/stacks/apiStack";
 import { LambdaStack } from "../lib/stacks/lambdaStack";
@@ -13,7 +13,7 @@ import { WebsiteStack } from "../lib/stacks/websiteStack";
 const app = new cdk.App();
 
 for (const props of stageProps) {
-    const { stageName, env, websiteDomain, apiDomain } = props;
+    const { stageName, env, websiteDomain, apiDomain, websiteCertificateArn } = props;
 
     const tags = {
         Project: APP_NAME,
@@ -26,9 +26,8 @@ for (const props of stageProps) {
         ...sharedStackProps,
     });
 
-    const dnsStack = new DnsStack(app, `${stageName}-DnsStack`, {
+    const apiCertificateStack = new ApiCertificateStack(app, `${stageName}-ApiCertificateStack`, {
         ...sharedStackProps,
-        websiteDomain,
         apiDomain,
     });
 
@@ -51,7 +50,7 @@ for (const props of stageProps) {
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {
         ...sharedStackProps,
         apiDomain,
-        apiCertificate: dnsStack.apiCertificate,
+        apiCertificate: apiCertificateStack.apiCertificate,
         userPool: cognitoStack.userPool,
         defaultFunction: lambdaStack.defaultFunction,
         createUserProfile: lambdaStack.createUserProfile,
@@ -62,7 +61,11 @@ for (const props of stageProps) {
         getGeneratedContentPiece: lambdaStack.getGeneratedContentPiece,
     });
 
+    // CloudFront Distribution requires certificates to be in region 'us-east-1'
+    // Stacks cannot have cross-region references, hence website certificates were created manually
     const websiteStack = new WebsiteStack(app, `${stageName}-WebsiteStack`, {
         ...sharedStackProps,
+        websiteDomain,
+        websiteCertificateArn,
     });
 }

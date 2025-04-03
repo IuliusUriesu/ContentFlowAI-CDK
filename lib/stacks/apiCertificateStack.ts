@@ -4,28 +4,19 @@ import { Construct } from "constructs";
 import { AppStackProps } from "../utils/utils";
 import { APP_NAME } from "../config/constants";
 
-interface DnsStackProps extends AppStackProps {
-    websiteDomain: string;
+interface ApiCertificateStackProps extends AppStackProps {
     apiDomain: string;
 }
 
-export class DnsStack extends cdk.Stack {
-    public websiteCertificate: acm.ICertificate;
+export class ApiCertificateStack extends cdk.Stack {
     public apiCertificate: acm.ICertificate;
 
-    constructor(scope: Construct, id: string, props: DnsStackProps) {
+    constructor(scope: Construct, id: string, props: ApiCertificateStackProps) {
         super(scope, id, props);
 
-        const { stageName, websiteDomain, apiDomain } = props;
+        const { stageName, apiDomain } = props;
 
-        const websiteCertificateName = `${stageName}-${APP_NAME}-WebsiteCertificate`;
         const apiCertificateName = `${stageName}-${APP_NAME}-ApiCertificate`;
-
-        this.websiteCertificate = new acm.Certificate(this, websiteCertificateName, {
-            domainName: websiteDomain,
-            certificateName: websiteCertificateName,
-            validation: acm.CertificateValidation.fromDns(),
-        });
 
         this.apiCertificate = new acm.Certificate(this, apiCertificateName, {
             domainName: apiDomain,
