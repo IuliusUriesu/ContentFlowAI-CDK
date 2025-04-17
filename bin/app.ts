@@ -33,6 +33,7 @@ for (const props of stageProps) {
 
     const cognitoStack = new CognitoStack(app, `${stageName}-CognitoStack`, {
         ...sharedStackProps,
+        websiteDomain,
     });
 
     const sqsStack = new SqsStack(app, `${stageName}-SqsStack`, {
