@@ -43,6 +43,13 @@ export class WebsiteStack extends cdk.Stack {
             defaultRootObject: "index.html",
             domainNames: [websiteDomain],
             certificate: websiteCertificate,
+            errorResponses: [
+                {
+                    httpStatus: 403,
+                    responseHttpStatus: 200,
+                    responsePagePath: "/index.html",
+                },
+            ],
         });
 
         // Stack Outputs used for deploying website
