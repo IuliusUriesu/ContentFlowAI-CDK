@@ -13,6 +13,7 @@ interface ApiStackProps extends AppStackProps {
     apiDomain: string;
     apiCertificate: acm.ICertificate;
     userPool: cognito.IUserPool;
+    websiteDomain: string;
     defaultFunction: lambda.IFunction;
     createUserProfile: lambda.IFunction;
     createContentRequest: lambda.IFunction;
@@ -26,7 +27,7 @@ export class ApiStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ApiStackProps) {
         super(scope, id, props);
 
-        const { stageName, apiDomain, apiCertificate, userPool } = props;
+        const { stageName, apiDomain, apiCertificate, userPool, websiteDomain } = props;
         const {
             defaultFunction,
             createUserProfile,
@@ -53,6 +54,12 @@ export class ApiStack extends cdk.Stack {
             cognitoUserPools: [userPool],
         });
 
+        // CORS Allowed Origins
+        const allowedOrigins = [`https://${websiteDomain}`];
+        if (stageName === StageName.DEV) {
+            allowedOrigins.push(`http://localhost:5173`);
+        }
+
         // API Gateway
         const apiName = `${stageName}-${APP_NAME}-API`;
         const api = new apigateway.LambdaRestApi(this, apiName, {
@@ -74,6 +81,11 @@ export class ApiStack extends cdk.Stack {
             defaultMethodOptions: {
                 authorizationType: apigateway.AuthorizationType.COGNITO,
                 authorizer,
+            },
+            defaultCorsPreflightOptions: {
+                allowOrigins: allowedOrigins,
+                allowMethods: apigateway.Cors.ALL_METHODS,
+                allowHeaders: apigateway.Cors.DEFAULT_HEADERS,
             },
             restApiName: apiName,
         });

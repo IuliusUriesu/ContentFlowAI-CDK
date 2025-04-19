@@ -53,6 +53,7 @@ for (const props of stageProps) {
         apiDomain,
         apiCertificate: apiCertificateStack.apiCertificate,
         userPool: cognitoStack.userPool,
+        websiteDomain,
         defaultFunction: lambdaStack.defaultFunction,
         createUserProfile: lambdaStack.createUserProfile,
         createContentRequest: lambdaStack.createContentRequest,
