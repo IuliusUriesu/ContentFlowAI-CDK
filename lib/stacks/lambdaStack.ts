@@ -127,7 +127,7 @@ export class LambdaStack extends cdk.Stack {
                 CONTENT_REQUEST_QUEUE_URL: contentRequestQueue.queueUrl,
             },
             layers: [nodeModulesLayer],
-            timeout: cdk.Duration.seconds(25),
+            timeout: cdk.Duration.seconds(60),
         });
 
         appDataTable.grantReadWriteData(this.createContentRequest);
