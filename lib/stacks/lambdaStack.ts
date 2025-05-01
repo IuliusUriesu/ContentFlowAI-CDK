@@ -33,6 +33,7 @@ export class LambdaStack extends cdk.Stack {
     public getContentRequest: lambda.IFunction;
     public getAllGeneratedContent: lambda.IFunction;
     public getGeneratedContentPiece: lambda.IFunction;
+    public editGeneratedContentPiece: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
     private generateContent: lambda.IFunction;
@@ -205,6 +206,18 @@ export class LambdaStack extends cdk.Stack {
         });
 
         appDataTable.grantReadWriteData(this.getGeneratedContentPiece);
+
+        // EditGeneratedContentPiece Function
+        this.editGeneratedContentPiece = this.createFunction({
+            functionName: `${stageName}-EditGeneratedContentPiece`,
+            handler: "index.editGeneratedContentPiece",
+            environment: {
+                ...ddbEnv,
+            },
+            layers: [nodeModulesLayer],
+        });
+
+        appDataTable.grantReadWriteData(this.editGeneratedContentPiece);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {

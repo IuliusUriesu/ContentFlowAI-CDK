@@ -61,6 +61,7 @@ for (const props of stageProps) {
         getContentRequest: lambdaStack.getContentRequest,
         getAllGeneratedContent: lambdaStack.getAllGeneratedContent,
         getGeneratedContentPiece: lambdaStack.getGeneratedContentPiece,
+        editGeneratedContentPiece: lambdaStack.editGeneratedContentPiece,
     });
 
     // CloudFront Distribution requires certificates to be in region 'us-east-1'
