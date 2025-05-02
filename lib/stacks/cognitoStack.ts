@@ -36,11 +36,11 @@ export class CognitoStack extends cdk.Stack {
             accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
         });
 
-        const callbackUrls = [`https://${websiteDomain}/create`];
+        const callbackUrls = [`https://${websiteDomain}/signin-callback`];
         const logoutUrls = [`https://${websiteDomain}`];
 
         if (stageName === StageName.DEV) {
-            callbackUrls.push(`http://localhost:5173/create`);
+            callbackUrls.push(`http://localhost:5173/signin-callback`);
             logoutUrls.push(`http://localhost:5173`);
         }
 
