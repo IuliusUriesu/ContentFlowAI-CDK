@@ -10,7 +10,7 @@ interface CognitoStackProps extends AppStackProps {
 }
 
 export class CognitoStack extends cdk.Stack {
-    public userPool: cognito.IUserPool;
+    public readonly userPool: cognito.IUserPool;
 
     constructor(scope: Construct, id: string, props: CognitoStackProps) {
         super(scope, id, props);

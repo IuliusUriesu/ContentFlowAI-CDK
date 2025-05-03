@@ -9,6 +9,7 @@ import { LambdaStack } from "../lib/stacks/lambdaStack";
 import { CognitoStack } from "../lib/stacks/cognitoStack";
 import { SqsStack } from "../lib/stacks/sqsStack";
 import { WebsiteStack } from "../lib/stacks/websiteStack";
+import { KmsStack } from "../lib/stacks/kmsStack";
 
 const app = new cdk.App();
 
@@ -40,12 +41,17 @@ for (const props of stageProps) {
         ...sharedStackProps,
     });
 
+    const kmsStack = new KmsStack(app, `${stageName}-KmsStack`, {
+        ...sharedStackProps,
+    });
+
     const lambdaStack = new LambdaStack(app, `${stageName}-LambdaStack`, {
         ...sharedStackProps,
         appDataTable: dynamoDbStack.appDataTable,
         generatedContentGsiName: dynamoDbStack.generatedContentGsiName,
         brandSummaryRequestQueue: sqsStack.brandSummaryRequestQueue,
         contentRequestQueue: sqsStack.contentRequestQueue,
+        userAnthropicApiKeyMasterKey: kmsStack.userAnthropicApiKeyMasterKey,
     });
 
     const apiStack = new ApiStack(app, `${stageName}-ApiStack`, {

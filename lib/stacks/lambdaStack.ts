@@ -3,16 +3,16 @@ import { Construct } from "constructs";
 import { AppStackProps } from "../utils/utils";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as sqs from "aws-cdk-lib/aws-sqs";
-import { APP_NAME } from "../config/constants";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import * as kms from "aws-cdk-lib/aws-kms";
 
 interface LambdaStackProps extends AppStackProps {
     appDataTable: dynamodb.TableV2;
     generatedContentGsiName: string;
     brandSummaryRequestQueue: sqs.IQueue;
     contentRequestQueue: sqs.IQueue;
+    userAnthropicApiKeyMasterKey: kms.IKey;
 }
 
 interface CreateFunctionInput {
@@ -26,14 +26,14 @@ interface CreateFunctionInput {
 export class LambdaStack extends cdk.Stack {
     private lambdaCodeAsset: lambda.AssetCode;
 
-    public defaultFunction: lambda.IFunction;
-    public createUserProfile: lambda.IFunction;
-    public createContentRequest: lambda.IFunction;
-    public getAllContentRequests: lambda.IFunction;
-    public getContentRequest: lambda.IFunction;
-    public getAllGeneratedContent: lambda.IFunction;
-    public getGeneratedContentPiece: lambda.IFunction;
-    public editGeneratedContentPiece: lambda.IFunction;
+    public readonly defaultFunction: lambda.IFunction;
+    public readonly createUserProfile: lambda.IFunction;
+    public readonly createContentRequest: lambda.IFunction;
+    public readonly getAllContentRequests: lambda.IFunction;
+    public readonly getContentRequest: lambda.IFunction;
+    public readonly getAllGeneratedContent: lambda.IFunction;
+    public readonly getGeneratedContentPiece: lambda.IFunction;
+    public readonly editGeneratedContentPiece: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
     private generateContent: lambda.IFunction;
@@ -47,19 +47,12 @@ export class LambdaStack extends cdk.Stack {
             generatedContentGsiName,
             brandSummaryRequestQueue,
             contentRequestQueue,
+            userAnthropicApiKeyMasterKey,
         } = props;
 
         // The place where the lambda code is
         const codePath = "../ContentFlowAI-Lambda/dist";
         this.lambdaCodeAsset = lambda.Code.fromAsset(codePath);
-
-        // Anthropic API Key
-        const anthropicApiKeySecretName = `${stageName}-${APP_NAME}/AnthropicApiKey`;
-        const anthropicApiKeySecert = secretsmanager.Secret.fromSecretNameV2(
-            this,
-            anthropicApiKeySecretName,
-            anthropicApiKeySecretName,
-        );
 
         // Node Modules Layer
         const nodeModulesLayerName = `${stageName}-NodeModulesLayer`;
@@ -87,12 +80,14 @@ export class LambdaStack extends cdk.Stack {
             environment: {
                 ...ddbEnv,
                 BRAND_SUMMARY_REQUEST_QUEUE_URL: brandSummaryRequestQueue.queueUrl,
+                USER_ANTHROPIC_API_KEY_MASTER_KEY_ARN: userAnthropicApiKeyMasterKey.keyArn,
             },
             layers: [nodeModulesLayer],
         });
 
         appDataTable.grantReadWriteData(this.createUserProfile);
         brandSummaryRequestQueue.grantSendMessages(this.createUserProfile);
+        userAnthropicApiKeyMasterKey.grantEncrypt(this.createUserProfile);
 
         // WriteBrandSummary Function
         this.writeBrandSummary = this.createFunction({
@@ -100,15 +95,15 @@ export class LambdaStack extends cdk.Stack {
             handler: "index.writeBrandSummary",
             environment: {
                 ...ddbEnv,
-                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+                USER_ANTHROPIC_API_KEY_MASTER_KEY_ARN: userAnthropicApiKeyMasterKey.keyArn,
             },
             layers: [nodeModulesLayer],
             timeout: cdk.Duration.seconds(90),
         });
 
         appDataTable.grantReadWriteData(this.writeBrandSummary);
-        anthropicApiKeySecert.grantRead(this.writeBrandSummary);
         brandSummaryRequestQueue.grantConsumeMessages(this.writeBrandSummary);
+        userAnthropicApiKeyMasterKey.grantDecrypt(this.writeBrandSummary);
 
         this.writeBrandSummary.addEventSource(
             new SqsEventSource(brandSummaryRequestQueue, {
@@ -124,16 +119,16 @@ export class LambdaStack extends cdk.Stack {
             handler: "index.createContentRequest",
             environment: {
                 ...ddbEnv,
-                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
                 CONTENT_REQUEST_QUEUE_URL: contentRequestQueue.queueUrl,
+                USER_ANTHROPIC_API_KEY_MASTER_KEY_ARN: userAnthropicApiKeyMasterKey.keyArn,
             },
             layers: [nodeModulesLayer],
             timeout: cdk.Duration.seconds(60),
         });
 
         appDataTable.grantReadWriteData(this.createContentRequest);
-        anthropicApiKeySecert.grantRead(this.createContentRequest);
         contentRequestQueue.grantSendMessages(this.createContentRequest);
+        userAnthropicApiKeyMasterKey.grantDecrypt(this.createContentRequest);
 
         // GenerateContent Function
         this.generateContent = this.createFunction({
@@ -141,15 +136,15 @@ export class LambdaStack extends cdk.Stack {
             handler: "index.generateContent",
             environment: {
                 ...ddbEnv,
-                ANTHROPIC_API_KEY_SECRET_NAME: anthropicApiKeySecretName,
+                USER_ANTHROPIC_API_KEY_MASTER_KEY_ARN: userAnthropicApiKeyMasterKey.keyArn,
             },
             layers: [nodeModulesLayer],
             timeout: cdk.Duration.seconds(120),
         });
 
         appDataTable.grantReadWriteData(this.generateContent);
-        anthropicApiKeySecert.grantRead(this.generateContent);
         contentRequestQueue.grantConsumeMessages(this.generateContent);
+        userAnthropicApiKeyMasterKey.grantDecrypt(this.generateContent);
 
         this.generateContent.addEventSource(
             new SqsEventSource(contentRequestQueue, {

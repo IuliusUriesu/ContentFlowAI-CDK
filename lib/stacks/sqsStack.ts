@@ -5,8 +5,8 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import { APP_NAME } from "../config/constants";
 
 export class SqsStack extends cdk.Stack {
-    public brandSummaryRequestQueue: sqs.IQueue;
-    public contentRequestQueue: sqs.IQueue;
+    public readonly brandSummaryRequestQueue: sqs.IQueue;
+    public readonly contentRequestQueue: sqs.IQueue;
 
     constructor(scope: Construct, id: string, props: AppStackProps) {
         super(scope, id, props);

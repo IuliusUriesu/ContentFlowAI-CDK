@@ -5,8 +5,8 @@ import { AppStackProps } from "../utils/utils";
 import { APP_NAME } from "../config/constants";
 
 export class DynamoDbStack extends cdk.Stack {
-    public appDataTable: dynamodb.TableV2;
-    public generatedContentGsiName: string;
+    public readonly appDataTable: dynamodb.TableV2;
+    public readonly generatedContentGsiName: string;
 
     constructor(scope: Construct, id: string, props: AppStackProps) {
         super(scope, id, props);

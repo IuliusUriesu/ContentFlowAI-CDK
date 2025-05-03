@@ -9,7 +9,7 @@ interface ApiCertificateStackProps extends AppStackProps {
 }
 
 export class ApiCertificateStack extends cdk.Stack {
-    public apiCertificate: acm.ICertificate;
+    public readonly apiCertificate: acm.ICertificate;
 
     constructor(scope: Construct, id: string, props: ApiCertificateStackProps) {
         super(scope, id, props);
