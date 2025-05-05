@@ -16,6 +16,7 @@ interface ApiStackProps extends AppStackProps {
     websiteDomain: string;
     defaultFunction: lambda.IFunction;
     createUserProfile: lambda.IFunction;
+    getUserProfile: lambda.IFunction;
     createContentRequest: lambda.IFunction;
     getAllContentRequests: lambda.IFunction;
     getContentRequest: lambda.IFunction;
@@ -32,6 +33,7 @@ export class ApiStack extends cdk.Stack {
         const {
             defaultFunction,
             createUserProfile,
+            getUserProfile,
             createContentRequest,
             getAllContentRequests,
             getContentRequest,
@@ -107,6 +109,9 @@ export class ApiStack extends cdk.Stack {
 
         // POST /v1/profile
         profile.addMethod("POST", new apigateway.LambdaIntegration(createUserProfile));
+
+        // GET /v1/profile
+        profile.addMethod("GET", new apigateway.LambdaIntegration(getUserProfile));
 
         // POST /v1/content-requests
         contentRequests.addMethod("POST", new apigateway.LambdaIntegration(createContentRequest));

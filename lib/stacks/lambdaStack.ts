@@ -28,6 +28,7 @@ export class LambdaStack extends cdk.Stack {
 
     public readonly defaultFunction: lambda.IFunction;
     public readonly createUserProfile: lambda.IFunction;
+    public readonly getUserProfile: lambda.IFunction;
     public readonly createContentRequest: lambda.IFunction;
     public readonly getAllContentRequests: lambda.IFunction;
     public readonly getContentRequest: lambda.IFunction;
@@ -88,6 +89,18 @@ export class LambdaStack extends cdk.Stack {
         appDataTable.grantReadWriteData(this.createUserProfile);
         brandSummaryRequestQueue.grantSendMessages(this.createUserProfile);
         userAnthropicApiKeyMasterKey.grantEncrypt(this.createUserProfile);
+
+        // GetUserProfile Function
+        this.getUserProfile = this.createFunction({
+            functionName: `${stageName}-GetUserProfile`,
+            handler: "index.getUserProfile",
+            environment: {
+                ...ddbEnv,
+            },
+            layers: [nodeModulesLayer],
+        });
+
+        appDataTable.grantReadWriteData(this.getUserProfile);
 
         // WriteBrandSummary Function
         this.writeBrandSummary = this.createFunction({

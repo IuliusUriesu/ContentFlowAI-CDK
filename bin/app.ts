@@ -62,6 +62,7 @@ for (const props of stageProps) {
         websiteDomain,
         defaultFunction: lambdaStack.defaultFunction,
         createUserProfile: lambdaStack.createUserProfile,
+        getUserProfile: lambdaStack.getUserProfile,
         createContentRequest: lambdaStack.createContentRequest,
         getAllContentRequests: lambdaStack.getAllContentRequests,
         getContentRequest: lambdaStack.getContentRequest,
