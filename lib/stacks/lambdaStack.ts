@@ -84,6 +84,7 @@ export class LambdaStack extends cdk.Stack {
                 USER_ANTHROPIC_API_KEY_MASTER_KEY_ARN: userAnthropicApiKeyMasterKey.keyArn,
             },
             layers: [nodeModulesLayer],
+            timeout: cdk.Duration.seconds(25),
         });
 
         appDataTable.grantReadWriteData(this.createUserProfile);
