@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { AppStackProps } from "../utils/utils";
-import { APP_NAME } from "../config/constants";
+import { APP_NAME } from "../config/config";
 
 export class DynamoDbStack extends cdk.Stack {
     public readonly appDataTable: dynamodb.TableV2;

@@ -2,12 +2,11 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { AppStackProps } from "../utils/utils";
-import { APP_NAME } from "../config/constants";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import { StageName } from "../config/stageConfig";
+import { APP_NAME, StageName } from "../config/config";
 
 interface ApiStackProps extends AppStackProps {
     apiDomain: string;

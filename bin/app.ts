@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { DynamoDbStack } from "../lib/stacks/dynamoDbStack";
-import { stageProps } from "../lib/config/stageConfig";
+import { APP_NAME, stageProps } from "../lib/config/config";
 import { ApiCertificateStack } from "../lib/stacks/apiCertificateStack";
-import { APP_NAME } from "../lib/config/constants";
 import { ApiStack } from "../lib/stacks/apiStack";
 import { LambdaStack } from "../lib/stacks/lambdaStack";
 import { CognitoStack } from "../lib/stacks/cognitoStack";
@@ -14,7 +13,15 @@ import { KmsStack } from "../lib/stacks/kmsStack";
 const app = new cdk.App();
 
 for (const props of stageProps) {
-    const { stageName, env, websiteDomain, apiDomain, websiteCertificateArn } = props;
+    const {
+        stageName,
+        env,
+        websiteDomain,
+        apiDomain,
+        authDomain,
+        websiteCertificateArn,
+        authCertificateArn,
+    } = props;
 
     const tags = {
         Project: APP_NAME,
@@ -35,6 +42,8 @@ for (const props of stageProps) {
     const cognitoStack = new CognitoStack(app, `${stageName}-CognitoStack`, {
         ...sharedStackProps,
         websiteDomain,
+        authDomain,
+        authCertificateArn,
     });
 
     const sqsStack = new SqsStack(app, `${stageName}-SqsStack`, {

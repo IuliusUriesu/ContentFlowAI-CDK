@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { Construct } from "constructs";
 import { AppStackProps } from "../utils/utils";
-import { APP_NAME } from "../config/constants";
+import { APP_NAME } from "../config/config";
 
 interface ApiCertificateStackProps extends AppStackProps {
     apiDomain: string;

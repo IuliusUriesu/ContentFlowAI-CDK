@@ -1,12 +1,14 @@
 import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { Construct } from "constructs";
 import { AppStackProps } from "../utils/utils";
-import { APP_NAME } from "../config/constants";
-import { StageName } from "../config/stageConfig";
+import { APP_NAME, StageName } from "../config/config";
 
 interface CognitoStackProps extends AppStackProps {
     websiteDomain: string;
+    authDomain: string;
+    authCertificateArn: string;
 }
 
 export class CognitoStack extends cdk.Stack {
@@ -15,8 +17,9 @@ export class CognitoStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: CognitoStackProps) {
         super(scope, id, props);
 
-        const { stageName, websiteDomain } = props;
+        const { stageName, websiteDomain, authDomain, authCertificateArn } = props;
 
+        // Cognito User Pool
         const userPoolName = `${stageName}-${APP_NAME}-UserPool`;
         this.userPool = new cognito.UserPool(this, userPoolName, {
             userPoolName,
@@ -36,6 +39,7 @@ export class CognitoStack extends cdk.Stack {
             accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
         });
 
+        // App Client for the User Pool
         const callbackUrls = [`https://${websiteDomain}/signin-callback`];
         const logoutUrls = [`https://${websiteDomain}`];
 
@@ -68,6 +72,23 @@ export class CognitoStack extends cdk.Stack {
             accessTokenValidity: cdk.Duration.hours(1),
             refreshTokenValidity: cdk.Duration.days(5),
             preventUserExistenceErrors: true,
+        });
+
+        // Auth Certificate for custom domain
+        const authCertificate = acm.Certificate.fromCertificateArn(
+            this,
+            `${stageName}-${APP_NAME}-AuthCertificate`,
+            authCertificateArn,
+        );
+
+        // Custom Domain
+        new cognito.UserPoolDomain(this, `${stageName}-${APP_NAME}-CustomDomain`, {
+            userPool: this.userPool,
+            customDomain: {
+                domainName: authDomain,
+                certificate: authCertificate,
+            },
+            managedLoginVersion: cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
         });
     }
 }

@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { AppStackProps } from "../utils/utils";
 import * as sqs from "aws-cdk-lib/aws-sqs";
-import { APP_NAME } from "../config/constants";
+import { APP_NAME } from "../config/config";
 
 export class SqsStack extends cdk.Stack {
     public readonly brandSummaryRequestQueue: sqs.IQueue;
