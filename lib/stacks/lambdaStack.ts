@@ -35,6 +35,7 @@ export class LambdaStack extends cdk.Stack {
     public readonly getAllGeneratedContent: lambda.IFunction;
     public readonly getGeneratedContentPiece: lambda.IFunction;
     public readonly editGeneratedContentPiece: lambda.IFunction;
+    public readonly editMarkedAsPosted: lambda.IFunction;
 
     private writeBrandSummary: lambda.IFunction;
     private generateContent: lambda.IFunction;
@@ -227,6 +228,18 @@ export class LambdaStack extends cdk.Stack {
         });
 
         appDataTable.grantReadWriteData(this.editGeneratedContentPiece);
+
+        // EditMarkedAsPosted Function
+        this.editMarkedAsPosted = this.createFunction({
+            functionName: `${stageName}-EditMarkedAsPosted`,
+            handler: "index.editMarkedAsPosted",
+            environment: {
+                ...ddbEnv,
+            },
+            layers: [nodeModulesLayer],
+        });
+
+        appDataTable.grantReadWriteData(this.editMarkedAsPosted);
     }
 
     private createFunction(input: CreateFunctionInput): lambda.IFunction {
