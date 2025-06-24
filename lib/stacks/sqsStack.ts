@@ -30,6 +30,7 @@ export class SqsStack extends cdk.Stack {
                 queue: brandSummaryRequestDlq,
                 maxReceiveCount: 3,
             },
+            receiveMessageWaitTime: cdk.Duration.seconds(20),
         });
 
         // ContentRequest Queue
@@ -49,6 +50,7 @@ export class SqsStack extends cdk.Stack {
                 queue: contentRequestDlq,
                 maxReceiveCount: 3,
             },
+            receiveMessageWaitTime: cdk.Duration.seconds(20),
         });
     }
 }
